@@ -17,7 +17,19 @@ def broadcast(command, text, exclude=None):
         try:
             proto.send_message(sock, command, payload)
         except (BrokenPipeError, ConnectionResetError, OSError):
-            pass
+            # Отключившийся клиент будет удалён своим обработчиком.
+            continue
+
+
+def decode_username(payload):
+    """Проверяет имя из JOIN/NICK и возвращает его либо понятную ошибку."""
+    try:
+        username = payload.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        return None, "username must be UTF-8"
+    if not username:
+        return None, "username must not be empty"
+    return username, None
 
 
 def handle_client(sock, addr):
@@ -25,13 +37,16 @@ def handle_client(sock, addr):
     try:
         first = proto.recv_message(sock)
         if first is None or first[0] != "JOIN":
-            proto.send_message(sock, "ERRO", b"first command must be JOIN")
+            proto.send_message(sock, "ERROR", b"first command must be JOIN")
             return
 
-        username = first[1].decode("utf-8", errors="replace").strip()
+        username, error = decode_username(first[1])
         with clients_lock:
-            if not username or username in clients.values():
-                proto.send_message(sock, "ERRO", b"invalid or taken username")
+            if error:
+                proto.send_message(sock, "ERROR", error.encode())
+                return
+            if username in clients.values():
+                proto.send_message(sock, "ERROR", b"username is already taken")
                 return
             clients[sock] = username
 
@@ -53,17 +68,42 @@ def handle_client(sock, addr):
                 with clients_lock:
                     names = list(clients.values())
                 proto.send_message(sock, "LIST", "\n".join(names).encode())
+            elif command == "NICK":
+                new_username, error = decode_username(payload)
+                if error:
+                    proto.send_message(sock, "ERROR", error.encode())
+                    continue
+                with clients_lock:
+                    if new_username in clients.values():
+                        error = "username is already taken"
+                    else:
+                        old_username = username
+                        clients[sock] = new_username
+                        username = new_username
+                if error:
+                    proto.send_message(sock, "ERROR", error.encode())
+                    continue
+                proto.send_message(sock, "TEXT", f"* ваше имя изменено на {username}".encode())
+                broadcast("TEXT", f"* {old_username} теперь известен как {username}", exclude=sock)
+                print(f"[*] {old_username} сменил имя на {username}")
             elif command == "QUIT":
                 proto.send_message(sock, "TEXT", b"* bye")
                 print(f"[-] {username} вышел через QUIT")
                 break
             else:
-                proto.send_message(sock, "ERRO", f"unknown command {command}".encode())
+                proto.send_message(sock, "ERROR", f"unknown command {command}".encode())
 
     except ConnectionResetError:
         print(f"[!] {username or addr} - соединение сброшено (RST)")
     except BrokenPipeError:
         print(f"[!] {username or addr} - не удалось отправить, соединение разорвано")
+    except ValueError as error:
+        # Некорректный заголовок не должен завершать поток сервера с traceback.
+        try:
+            proto.send_message(sock, "ERROR", str(error).encode("utf-8"))
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            pass
+        print(f"[!] {username or addr} - ошибка протокола: {error}")
     finally:
         with clients_lock:
             clients.pop(sock, None)
