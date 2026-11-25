@@ -1,0 +1,21 @@
+{% from "form_helpers.html" import csrf_input, show_errors %}
+
+{{ show_errors(errors) }}
+
+<form method="post" action="{{ form_action }}">
+    {{ csrf_input() }}
+    <p>
+        <label for="title">Название</label>
+        <input type="text" id="title" name="title" value="{{ form.title|default('') }}" maxlength="200" required>
+    </p>
+    <p>
+        <label for="director">Режиссёр</label>
+        <input type="text" id="director" name="director" value="{{ form.director|default('') }}" maxlength="120" required>
+    </p>
+    <p>
+        <label for="description">Описание</label>
+        <textarea id="description" name="description" rows="4" maxlength="5000" required>
+{{ form.description|default('') }}</textarea>
+    </p>
+    <button type="submit">Сохранить</button>
+</form>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form method="get" action="{{ url_for('movies.index') }}">
+        <label for="q">Поиск по названию</label>
+        <input type="search" id="q" name="q" value="{{ query }}">
+
+        <label for="sort">Сортировка</label>
+        <select id="sort" name="sort">
+            <option value="">В порядке добавления</option>
+            <option value="title"{% if sort == 'title' %} selected{% endif %}>По названию</option>
+        </select>
+        <button type="submit">Применить</button>
+    </form>
+
+    {% if movies %}
+        <ul>
+            {% for movie in movies %}
+                <li>
+                    <a href="{{ url_for('movies.detail', movie_id=movie.id) }}">{{ movie.title }}</a>
+                    <span>— {{ movie.director }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif query %}
+        <p>По этому запросу фильмов нет.</p>
+    {% else %}
+        <p>Пока фильмов нет.</p>
+    {% endif %}
+{% endblock %}

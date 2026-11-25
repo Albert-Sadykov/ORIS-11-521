@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Добавить фильм{% endblock %}
+
+{% block content %}
+    <h2>Новый фильм</h2>
+    {% set form_action = url_for('movies.add_movie') %}
+    {% include "movie_form.html" %}
+{% endblock %}

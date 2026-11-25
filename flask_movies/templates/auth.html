@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "form_helpers.html" import csrf_input, show_errors %}
+{% set heading = "Регистрация" if register else "Вход" %}
+
+{% block title %}{{ heading }}{% endblock %}
+
+{% block content %}
+    <h2>{{ heading }}</h2>
+    {{ show_errors(errors) }}
+    <form method="post" action="{{ url_for('auth.register' if register else 'auth.login') }}">
+        {{ csrf_input() }}
+        <p>
+            <label for="username">Имя пользователя</label>
+            <input type="text" id="username" name="username" value="{{ username|default('') }}"
+                   autocomplete="username" required>
+        </p>
+        <p>
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" maxlength="128"
+                   autocomplete="{{ 'new-password' if register else 'current-password' }}" required>
+        </p>
+        <button type="submit">{{ "Зарегистрироваться" if register else "Войти" }}</button>
+    </form>
+{% endblock %}

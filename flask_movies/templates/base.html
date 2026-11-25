@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+{% from "form_helpers.html" import csrf_input %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Список фильмов{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <h1>Список фильмов</h1>
+        <nav>
+            {% if g.user %}
+                <a href="{{ url_for('movies.index') }}">Главная</a>
+                <a href="{{ url_for('movies.add_movie') }}">Добавить фильм</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">Войти</a>
+                <a href="{{ url_for('auth.register') }}">Зарегистрироваться</a>
+            {% endif %}
+        </nav>
+        {% if g.user %}
+            <form method="post" action="{{ url_for('auth.logout') }}">
+                {{ csrf_input() }}
+                <span>{{ g.user.username }}</span>
+                <button type="submit">Выйти</button>
+            </form>
+        {% endif %}
+    </header>
+
+    <hr>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

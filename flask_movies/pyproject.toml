@@ -1,0 +1,10 @@
+[project]
+name = "flask-movies"
+version = "0.1.0"
+description = "Личный каталог фильмов на Flask и SQLite"
+requires-python = ">=3.11"
+dependencies = [
+    "cachelib>=0.13,<1",
+    "flask>=3.1,<4",
+    "flask-session>=0.8,<1",
+]

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "form_helpers.html" import csrf_input %}
+
+{% block title %}{{ movie.title }}{% endblock %}
+
+{% block content %}
+    <h2>{{ movie.title }}</h2>
+    <p>Режиссёр — {{ movie.director }}</p>
+    <p>{{ movie.description }}</p>
+    <form method="get" action="{{ url_for('movies.edit_movie', movie_id=movie.id) }}">
+        <button type="submit">Редактировать</button>
+    </form>
+    <form method="post" action="{{ url_for('movies.delete_movie', movie_id=movie.id, _method='POST') }}">
+        {{ csrf_input() }}
+        <button type="submit">Удалить фильм</button>
+    </form>
+    <a href="{{ url_for('movies.index') }}">Вернуться к списку</a>
+{% endblock %}

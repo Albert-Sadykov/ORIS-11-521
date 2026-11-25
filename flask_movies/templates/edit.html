@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать фильм{% endblock %}
+
+{% block content %}
+    <h2>Редактировать фильм</h2>
+    {% set form_action = url_for('movies.edit_movie', movie_id=movie.id) %}
+    {% include "movie_form.html" %}
+    <a href="{{ url_for('movies.detail', movie_id=movie.id) }}">Вернуться к фильму</a>
+{% endblock %}
